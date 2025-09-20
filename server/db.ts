@@ -1,8 +1,8 @@
-import mysql from 'mysql2/promise';
-import { drizzle } from 'drizzle-orm/mysql2';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
 
-let connection: mysql.Connection;
+let client: postgres.Sql;
 let db: ReturnType<typeof drizzle>;
 
 async function initializeDb() {
@@ -25,10 +25,10 @@ async function initializeDb() {
     );
   }
   
-  console.log("Connecting to MySQL database...");
-  connection = await mysql.createConnection(databaseUrl);
-  db = drizzle(connection, { schema, mode: 'default' });
-  console.log("MySQL database connection established");
+  console.log("Connecting to PostgreSQL database...");
+  client = postgres(databaseUrl);
+  db = drizzle(client, { schema });
+  console.log("PostgreSQL database connection established");
   return db;
 }
 
