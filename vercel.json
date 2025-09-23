@@ -1,6 +1,7 @@
 {
-  "buildCommand": "vite build",
+  "buildCommand": "npm run build",
   "outputDirectory": "dist/public",
+  "installCommand": "npm install && cd api && npm install",
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -13,7 +14,31 @@
   ],
   "functions": {
     "api/index.js": {
-      "runtime": "@vercel/node"
+      "runtime": "@vercel/node@18",
+      "memory": 256,
+      "maxDuration": 60
     }
-  }
+  },
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
 }
