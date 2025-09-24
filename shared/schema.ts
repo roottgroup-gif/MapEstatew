@@ -26,7 +26,7 @@ export const users = mysqlTable("users", {
   waveBalance: int("wave_balance").default(10), // Number of waves user can assign to properties
   expiresAt: timestamp("expires_at"), // User account expiration date
   isExpired: boolean("is_expired").default(false), // Computed or manual flag for expiration status
-  allowedLanguages: json("allowed_languages").$type<string[]>().default(["en"]), // Languages user can add data in: "en", "ar", "ku"
+  allowedLanguages: json("allowed_languages").$type<string[]>(), // Languages user can add data in: "en", "ar", "ku"
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -46,9 +46,9 @@ export const properties = mysqlTable("properties", {
   country: text("country").notNull(),
   latitude: decimal("latitude", { precision: 10, scale: 8 }),
   longitude: decimal("longitude", { precision: 11, scale: 8 }),
-  images: json("images").$type<string[]>().default([]),
-  amenities: json("amenities").$type<string[]>().default([]),
-  features: json("features").$type<string[]>().default([]),
+  images: json("images").$type<string[]>(),
+  amenities: json("amenities").$type<string[]>(),
+  features: json("features").$type<string[]>(),
   status: varchar("status", { length: 16 }).default("active"), // "active" | "sold" | "rented" | "pending"
   language: varchar("language", { length: 3 }).notNull().default("en"), // Language of the property data: "en", "ar", "ku"
   agentId: varchar("agent_id", { length: 36 }).references(() => users.id),
@@ -58,7 +58,7 @@ export const properties = mysqlTable("properties", {
   isFeatured: boolean("is_featured").default(false),
   slug: varchar("slug", { length: 255 }).unique(), // SEO-friendly URL slug (nullable for backward compatibility)
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
 export const inquiries = mysqlTable("inquiries", {
@@ -84,7 +84,7 @@ export const searchHistory = mysqlTable("search_history", {
   id: varchar("id", { length: 36 }).primaryKey(),
   userId: varchar("user_id", { length: 36 }).references(() => users.id),
   query: text("query").notNull(),
-  filters: json("filters").$type<Record<string, any>>().default({}),
+  filters: json("filters").$type<Record<string, any>>(),
   results: int("results").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -94,7 +94,7 @@ export const customerActivity = mysqlTable("customer_activity", {
   userId: varchar("user_id", { length: 36 }).references(() => users.id).notNull(),
   activityType: text("activity_type").notNull(), // "property_view" | "search" | "favorite_add" | "favorite_remove" | "inquiry_sent" | "login" | "profile_update"
   propertyId: varchar("property_id", { length: 36 }).references(() => properties.id),
-  metadata: json("metadata").$type<Record<string, any>>().default({}),
+  metadata: json("metadata").$type<Record<string, any>>(),
   points: int("points").default(0), // Points earned for this activity
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -106,23 +106,23 @@ export const customerPoints = mysqlTable("customer_points", {
   currentLevel: varchar("current_level", { length: 20 }).default("Bronze"), // Bronze, Silver, Gold, Platinum
   pointsThisMonth: int("points_this_month").default(0),
   lastActivity: timestamp("last_activity").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
 // User preference profiles for personalized recommendations
 export const userPreferences = mysqlTable("user_preferences", {
   id: varchar("id", { length: 36 }).primaryKey(),
   userId: varchar("user_id", { length: 36 }).references(() => users.id).notNull().unique(),
-  preferredPropertyTypes: json("preferred_property_types").$type<string[]>().default([]), // ["apartment", "house", "villa"]
-  preferredListingTypes: json("preferred_listing_types").$type<string[]>().default([]), // ["sale", "rent"]
+  preferredPropertyTypes: json("preferred_property_types").$type<string[]>(), // ["apartment", "house", "villa"]
+  preferredListingTypes: json("preferred_listing_types").$type<string[]>(), // ["sale", "rent"]
   budgetRange: json("budget_range").$type<{ min: number; max: number; currency: string }>(),
-  preferredLocations: json("preferred_locations").$type<string[]>().default([]), // ["erbil", "baghdad"]
-  preferredBedrooms: json("preferred_bedrooms").$type<number[]>().default([]), // [2, 3, 4]
-  preferredAmenities: json("preferred_amenities").$type<string[]>().default([]), // ["parking", "pool"]
-  viewingHistory: json("viewing_history").$type<Record<string, number>>().default({}), // propertyId -> view_count
-  interactionScores: json("interaction_scores").$type<Record<string, number>>().default({}), // propertyId -> score
+  preferredLocations: json("preferred_locations").$type<string[]>(), // ["erbil", "baghdad"]
+  preferredBedrooms: json("preferred_bedrooms").$type<number[]>(), // [2, 3, 4]
+  preferredAmenities: json("preferred_amenities").$type<string[]>(), // ["parking", "pool"]
+  viewingHistory: json("viewing_history").$type<Record<string, number>>(), // propertyId -> view_count
+  interactionScores: json("interaction_scores").$type<Record<string, number>>(), // propertyId -> score
   lastRecommendationUpdate: timestamp("last_recommendation_update").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
 // AI-generated recommendations for users
@@ -132,7 +132,7 @@ export const userRecommendations = mysqlTable("user_recommendations", {
   propertyId: varchar("property_id", { length: 36 }).references(() => properties.id).notNull(),
   recommendationType: text("recommendation_type").notNull(), // "personalized", "similar", "trending", "location_based"
   confidence: decimal("confidence", { precision: 3, scale: 2 }).notNull().default("0.50"), // 0.0 - 1.0
-  reasoning: json("reasoning").$type<string[]>().default([]), // ["matches_price_range", "similar_to_favorites"]
+  reasoning: json("reasoning").$type<string[]>(), // ["matches_price_range", "similar_to_favorites"]
   isViewed: boolean("is_viewed").default(false),
   isClicked: boolean("is_clicked").default(false),
   isFavorited: boolean("is_favorited").default(false),
@@ -147,7 +147,7 @@ export const propertySimilarity = mysqlTable("property_similarity", {
   propertyId1: varchar("property_id_1", { length: 36 }).references(() => properties.id).notNull(),
   propertyId2: varchar("property_id_2", { length: 36 }).references(() => properties.id).notNull(),
   similarityScore: decimal("similarity_score", { precision: 3, scale: 2 }).notNull(), // 0.0 - 1.0
-  similarityFactors: json("similarity_factors").$type<Record<string, number>>().default({}), // {"price": 0.8, "location": 0.9}
+  similarityFactors: json("similarity_factors").$type<Record<string, number>>(), // {"price": 0.8, "location": 0.9}
   calculatedAt: timestamp("calculated_at").defaultNow(),
 });
 
@@ -178,7 +178,7 @@ export const currencyRates = mysqlTable("currency_rates", {
   setBy: varchar("set_by", { length: 36 }).references(() => users.id), // Super admin who set this rate
   effectiveDate: timestamp("effective_date").defaultNow(), // When this rate becomes effective
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
 // Wave management tables
@@ -190,7 +190,7 @@ export const waves = mysqlTable("waves", {
   isActive: boolean("is_active").default(true),
   createdBy: varchar("created_by", { length: 36 }).references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
 export const customerWavePermissions = mysqlTable("customer_wave_permissions", {
@@ -201,7 +201,7 @@ export const customerWavePermissions = mysqlTable("customer_wave_permissions", {
   usedProperties: int("used_properties").default(0), // How many properties customer has already assigned
   grantedBy: varchar("granted_by", { length: 36 }).references(() => users.id), // Super admin who granted permission
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow().$onUpdateFn(() => new Date()),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow(),
 });
 
 // Relations
@@ -313,7 +313,7 @@ export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   isExpired: true, // This will be computed based on expiresAt
 }).extend({
-  allowedLanguages: z.array(z.enum(SUPPORTED_LANGUAGES)).default(["en"]).optional(),
+  allowedLanguages: z.array(z.enum(SUPPORTED_LANGUAGES)).default(["en"]),
 });
 
 export const insertPropertySchema = createInsertSchema(properties).omit({
@@ -324,6 +324,9 @@ export const insertPropertySchema = createInsertSchema(properties).omit({
   slug: true, // Slug will be auto-generated
 }).extend({
   language: z.enum(SUPPORTED_LANGUAGES).default("en"),
+  images: z.array(z.string()).default([]),
+  amenities: z.array(z.string()).default([]),
+  features: z.array(z.string()).default([]),
 });
 
 export const updatePropertySchema = createInsertSchema(properties).omit({
@@ -350,11 +353,15 @@ export const insertFavoriteSchema = createInsertSchema(favorites).omit({
 export const insertSearchHistorySchema = createInsertSchema(searchHistory).omit({
   id: true,
   createdAt: true,
+}).extend({
+  filters: z.record(z.any()).default({}),
 });
 
 export const insertCustomerActivitySchema = createInsertSchema(customerActivity).omit({
   id: true,
   createdAt: true,
+}).extend({
+  metadata: z.record(z.any()).default({}),
 });
 
 export const insertCustomerPointsSchema = createInsertSchema(customerPoints).omit({
